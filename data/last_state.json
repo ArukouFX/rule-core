@@ -1,0 +1,13 @@
+{
+  "user": {
+    "name": "Luis",
+    "progress": 95,
+    "currentLevel": 1,
+    "errors": 0,
+    "isPremium": true,
+    "hasBadge": true
+  },
+  "system": {
+    "suggestion": "NONE"
+  }
+}

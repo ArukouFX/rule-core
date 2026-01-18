@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext", // Mantengo tu elección moderna
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    
+    /* Calidad de Código */
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    
+    /* Explicabilidad y Debugging */
+    "sourceMap": true,
+    "declaration": true,
+    
+    /* Prevención de Errores (Tus favoritos) */
+    "noUncheckedIndexedAccess": true, // Te obliga a chequear si un objeto existe antes de acceder
+    "noImplicitReturns": true,
+    "noUnusedLocals": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}

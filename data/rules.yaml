@@ -1,0 +1,55 @@
+# Sistema de Progresión Educativa MVP
+rules:
+  # REGLA 1: Otorga beneficios por ser Premium (Disparador de cadena)
+  - id: "PROG_000_PREMIUM_BONUS"
+    priority: 20
+    description: "Usuarios premium reciben un impulso inicial si están en 0"
+    when:
+      all_of:
+        - { fact: "user.isPremium", operator: "EQ", value: true }
+        - { fact: "user.progress", operator: "EQ", value: 0 } # Solo cuando está en cero exacto
+    then:
+      - type: "UPDATE_FACT"
+        params: { path: "user.progress", value: "+10" }
+
+  # REGLA 2: Promoción por desempeño (Independiente)
+  - id: "PROG_003_SPECIAL_PROMOTION"
+    priority: 15
+    description: "Insignia por progreso alto y pocos errores"
+    when:
+      all_of:
+        - { fact: "user.progress", operator: "GT", value: 90 }
+        - { fact: "user.errors", operator: "LT", value: 2 }
+        - { fact: "user.hasBadge", operator: "EQ", value: false }
+    then:
+      - type: "SET_STATE"
+        params: { path: "user.hasBadge", value: true }
+      - type: "EMIT_EVENT"
+        params: { name: "SPECIAL_BADGE_EARNED" }
+
+  # REGLA 3: Subida de nivel (Consecuencia de la Regla 1 o progreso manual)
+  - id: "PROG_001_LEVEL_UP"
+    priority: 10
+    description: "Sube de nivel si el progreso es completo"
+    when:
+      all_of:
+        - { fact: "user.progress", operator: "GTE", value: 100 }
+        - { fact: "user.currentLevel", operator: "LT", value: 5 }
+    then:
+      - type: "UPDATE_FACT"
+        params: { path: "user.currentLevel", value: "+1" }
+      - type: "SET_STATE"
+        params: { path: "user.progress", value: 0 } # Reinicia progreso al subir nivel
+      - type: "EMIT_EVENT"
+        params: { name: "LEVEL_UP_CELEBRATION" }
+
+  # REGLA 4: Control de errores
+  - id: "PROG_002_REINFORCE"
+    priority: 5
+    description: "Sugiere repaso si hay muchos errores"
+    when:
+      all_of:
+        - { fact: "user.errors", operator: "GT", value: 3 }
+    then:
+      - type: "SET_STATE"
+        params: { path: "system.suggestion", value: "REVISE_MODULE_1" }
