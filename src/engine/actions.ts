@@ -31,14 +31,29 @@ export class ActionHandler {
     let current = obj;
 
     for (const key of keys) {
-      if (!current[key]) current[key] = {};
+      if (!current[key]) {
+          console.warn(`[Warning] Path no encontrado: ${key}. Creando estructura...`);
+          current[key] = {};
+      }
       current = current[key];
     }
 
-    // Lógica para incrementos/decrementos relativos
+    // VALIDACIÓN DE ERRORES MATEMÁTICOS
     if (typeof value === 'string' && (value.startsWith('+') || value.startsWith('-'))) {
-      const currentValue = current[lastKey] || 0;
+      const currentValue = current[lastKey];
+      
+      // Validar si el valor actual es realmente un número
+      if (typeof currentValue !== 'number') {
+        console.error(`[Error Crítico] No se puede aplicar un incremento relativo a un valor no numérico en: ${path}`);
+        return obj; // Retornamos el objeto sin cambios para no corromper el estado
+      }
+
       const delta = parseInt(value, 10);
+      if (isNaN(delta)) {
+        console.error(`[Error Crítico] El incremento "${value}" no es un número válido.`);
+        return obj;
+      }
+
       current[lastKey] = currentValue + delta;
     } else {
       // Reemplazo absoluto

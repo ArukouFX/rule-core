@@ -9,14 +9,19 @@ export interface Condition {
 }
 
 export interface Action {
-  type: string;
-  params: Record<string, any>;
+  type: 'UPDATE_FACT' | 'SET_STATE' | 'EMIT_EVENT';
+  params: {
+    path?: string;
+    value?: any;
+    name?: string;
+    [key: string]: any;
+  };
 }
 
 export interface Rule {
   id: string;
   priority: number;
-  description: string;
+  description?: string;
   when: Condition;
   then: Action[];
 }

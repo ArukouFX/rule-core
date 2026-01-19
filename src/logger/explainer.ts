@@ -1,6 +1,5 @@
 import type { Operator } from '../types/index.js';
 
-// Definimos la estructura de un "pista" o rastro de comparación
 export interface Trace {
   fact: string;
   operator: Operator;
@@ -9,26 +8,59 @@ export interface Trace {
   success: boolean;
 }
 
+interface RuleLog {
+  ruleId: string;
+  success: boolean;
+  traces: Trace[];
+}
+
 export class Explainer {
-  private static traces: Trace[] = [];
+  private static logs: RuleLog[] = [];
+  private static currentTraces: Trace[] = [];
 
-  // Registra un intento de comparación
+  // Registra comparaciones individuales (se llama desde el Evaluator)
   static record(trace: Trace): void {
-    this.traces.push(trace);
+    this.currentTraces.push(trace);
   }
 
-  // Limpia los rastros (útil antes de evaluar una nueva regla)
+  // Registra el resultado final de una regla (se llama desde el Engine)
+  static registerRule(ruleId: string, success: boolean): void {
+    this.logs.push({
+      ruleId,
+      success,
+      traces: [...this.currentTraces]
+    });
+    this.currentTraces = []; // Limpiamos para la siguiente regla
+  }
+
   static clear(): void {
-    this.traces = [];
+    this.logs = [];
+    this.currentTraces = [];
   }
 
-  // Genera un reporte legible
-  static getReport(): string {
-    if (this.traces.length === 0) return "  (No hay datos evaluados)";
+  /**
+   * Imprime una tabla con el resumen y detalles técnicos
+   */
+  static showSummary(): void {
+    if (this.logs.length === 0) return;
+
+    console.log("\n🔍 RESUMEN DE EVALUACIÓN:");
     
-    return this.traces.map(t => {
-      const icon = t.success ? 'V: ' : 'X: ';
-      return `  ${icon} [${t.fact}]: valor ${t.actual} ${t.success ? 'cumple' : 'NO cumple'} ser ${t.operator} que ${t.expected}`;
-    }).join('\n');
+    const summaryTable = this.logs.map(log => {
+      // Tomamos el primer rastro fallido o el último exitoso para el motivo
+      const relevantTrace = log.traces.find(t => !t.success) || log.traces[0];
+      const motivo = relevantTrace 
+        ? `${relevantTrace.fact} (${relevantTrace.actual}) ${relevantTrace.operator} ${relevantTrace.expected}`
+        : "Sin condiciones";
+
+      return {
+        "Regla": log.ruleId,
+        "Estado": log.success ? "V: ACTIVADA" : "X: SALTADA",
+        "Detalle Técnico": motivo
+      };
+    });
+
+    console.table(summaryTable);
+    this.clear(); // Limpiar después de mostrar
   }
 }
